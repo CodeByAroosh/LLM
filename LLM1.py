@@ -15,13 +15,14 @@ preprocessed = [item.strip() for item in preprocessed if item.strip()]
 # <|endoftext|> is used when we have multiple documents and text files. Before the end of each file, we insert this token
 #   in order to help the program understand this is a new sample of text and to not mix it up with the previous one
 all_tokens = sorted(list(set(preprocessed)))
-all_tokens.extend["<|endoftext|>", "<|unk|>"]
+all_tokens.extend(["<|endoftext|>", "<|unk|>"])
 
 # Creates a dictionary; Assigns an integer for every token or 'word' in all_words
 # Thus, we create a TokenID for every token
 vocab = {token:integer for integer, token in enumerate(all_tokens)}
 
-class SimpleTokenizerV1:
+# Creates the SimpleTokenizerV1 class
+class SimpleTokenizerV2:
 
     # Im guessing without having to call it, these types of vars get set up
     def __init__(self, vocab):
@@ -35,8 +36,12 @@ class SimpleTokenizerV1:
     #Returns the ids given text
     def encode(self, text):
         preprocessed = re.split(r'([,.:;?_!"()\']|--|\s)', text)
-                                
         preprocessed = [item.strip() for item in preprocessed if item.strip()]
+        preprocessed = [
+            item if item in self.str_to_int
+            else "<|unk|>" for item in preprocessed # Add the condition in encode to detect if a word is not known.
+        ]
+
         ids = [self.str_to_int[s] for s in preprocessed]
         return ids
 
@@ -51,15 +56,18 @@ class SimpleTokenizerV1:
         return text
 
 # Creates a new SimpleTokenizerV1 object called tokenizer 
-tokenizer = SimpleTokenizerV1(vocab)
-text = """"It's the last he painted, you know," Mrs. Gisburn said with pardonable pride."""
+tokenizer = SimpleTokenizerV2(vocab)
+
+text1 = "Hello, do you like tea?"
+text2 = "In the sunlit terraces of the palace."
+
+text = " <|endoftext|> ".join((text1, text2))
+
+print(tokenizer.decode(tokenizer.encode(text)))
 
 
-ids = tokenizer.encode(text)
 
 
-print(ids)
-print(tokenizer.decode(ids))
 
-# print("Total number of character:", len(raw_text))
-# print(raw_text[:99])
+
+
